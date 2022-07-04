@@ -1,0 +1,2 @@
+# winmerge_xlsx_report
+WinMergeでフォルダ差分を出してExcelにまとめるまでをPythonで自動化
