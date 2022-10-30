@@ -164,7 +164,7 @@ class WinMergeXlsx:
 
     def _freeze_panes(self, ws):
         ws.Activate()
-        ws.Range("A2").Select()
+        ws.Range('A2').Select()
         self.excel.ActiveWindow.FreezePanes = True
 
     def _set_format(self, ws):
