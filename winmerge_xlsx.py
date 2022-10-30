@@ -30,16 +30,16 @@ SUMMARY_FOLDER_COL = 'B'  # 一覧シートの表のフォルダー列
 
 HOME_POSITION = 'A1' # ホームポジション
 
-DIFF_START_ROW = 2                                  # 差分シートの開始行
-DIFF_ZOOM_RATIO = 85                                # 差分シートのズームの倍率
-DIFF_FORMATS = {                                    # 差分シートの書式設定
-    'no': [                                         # 行番号列
-        {'range': 'A1', 'width': 3},                # 左側
-        {'range': 'C1', 'width': 3},                # 右側
+DIFF_START_ROW = 2                                                # 差分シートの開始行
+DIFF_ZOOM_RATIO = 85                                              # 差分シートのズームの倍率
+DIFF_FORMATS = {                                                  # 差分シートの書式設定
+    'no': [                                                       # 行番号列
+        {'range': 'A1', 'width': 5},                              # 左側
+        {'range': 'C1', 'width': 5},                              # 右側
     ],
-    'code': [                                       # ソースコード列
-        {'range': 'B:B', 'font': 'ＭＳ ゴシック'},  # 左側
-        {'range': 'D:D', 'font': 'ＭＳ ゴシック'},  # 右側
+    'code': [                                                     # ソースコード列
+        {'range': 'B:B', 'width': 100, 'font': 'ＭＳ ゴシック'},  # 左側
+        {'range': 'D:D', 'width': 100, 'font': 'ＭＳ ゴシック'},  # 右側
     ],
 }
 
@@ -174,6 +174,7 @@ class WinMergeXlsx:
 
     def _format_code_cols(self, ws):
         for f in DIFF_FORMATS['code']:
+            ws.Range(f['range']).ColumnWidth = f['width']
             ws.Range(f['range']).Font.Name = f['font']
 
     def _set_home_position(self):
