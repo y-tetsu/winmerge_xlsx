@@ -109,7 +109,7 @@ class WinMergeXlsx:
             self._format_summary_sheet()
             self._copy_html_files()
             self._format_diff_sheets()
-            self._set_home_position()
+            self._set_home_position(self.summary_ws)
             self._save_book()
 
         finally:
@@ -158,6 +158,7 @@ class WinMergeXlsx:
             self._freeze_panes(ws)
             self._remove_hyperlink_from_no(ws)
             self._set_format(ws)
+            self._set_home_position(ws)
 
     def _set_zoom(self, ws):
         ws.Activate()
@@ -185,9 +186,9 @@ class WinMergeXlsx:
                 if 'font' in f:
                     ws.Range(r).Font.Name = f['font']
 
-    def _set_home_position(self):
-        self.summary_ws.Activate()
-        self.summary_ws.Range(HOME_POSITION).Select()
+    def _set_home_position(self, ws):
+        ws.Activate()
+        ws.Range(HOME_POSITION).Select()
 
     def _save_book(self):
         self.wb.SaveAs(str(self.output), FileFormat=xlOpenXMLWorkbook)
