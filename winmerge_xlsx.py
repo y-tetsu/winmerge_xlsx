@@ -30,16 +30,16 @@ SUMMARY_FOLDER_COL = 'B'  # 一覧シートの表のフォルダー列
 
 HOME_POSITION = 'A1' # ホームポジション
 
-DIFF_START_ROW = 2                                                # 差分シートの開始行
-DIFF_ZOOM_RATIO = 85                                              # 差分シートのズームの倍率
-DIFF_FORMATS = {                                                  # 差分シートの書式設定
-    'no': [                                                       # 行番号列
-        {'range': 'A1', 'width': 5},                              # 左側
-        {'range': 'C1', 'width': 5},                              # 右側
+DIFF_START_ROW = 2                                            # 差分シートの開始行
+DIFF_ZOOM_RATIO = 85                                          # 差分シートのズームの倍率
+DIFF_FORMATS = {                                              # 差分シートの書式設定
+    'no': [                                                   # 行番号列
+        {'col': 'A', 'width': 5},                             # 左側
+        {'col': 'C', 'width': 5},                             # 右側
     ],
-    'code': [                                                     # ソースコード列
-        {'range': 'B:B', 'width': 100, 'font': 'ＭＳ ゴシック'},  # 左側
-        {'range': 'D:D', 'width': 100, 'font': 'ＭＳ ゴシック'},  # 右側
+    'code': [                                                 # ソースコード列
+        {'col': 'B', 'width': 100, 'font': 'ＭＳ ゴシック'},  # 左側
+        {'col': 'D', 'width': 100, 'font': 'ＭＳ ゴシック'},  # 右側
     ],
 }
 
@@ -156,6 +156,7 @@ class WinMergeXlsx:
             ws = self.wb.Worksheets(i)
             self._set_zoom(ws)
             self._freeze_panes(ws)
+            self._remove_hyperlink_from_no(ws)
             self._set_format(ws)
 
     def _set_zoom(self, ws):
@@ -167,13 +168,22 @@ class WinMergeXlsx:
         ws.Range('A2').Select()
         self.excel.ActiveWindow.FreezePanes = True
 
+    def _remove_hyperlink_from_no(self, ws):
+        for f in DIFF_FORMATS['no']:
+            r1 = f['col'] + ':' + f['col']
+            r2 = f['col'] + str(DIFF_START_ROW) + ':' + f['col'] + str(ws.Cells(ws.Rows.Count, 1).End(xlUp).Row)
+            ws.Range(r1).Hyperlinks.Delete()
+            ws.Range(r2).Interior.Color = int('F0F0F0', 16)
+            ws.Range(r2).Font.Size = 12
+
     def _set_format(self, ws):
         for key in DIFF_FORMATS.keys():
             for f in DIFF_FORMATS[key]:
+                r = f['col'] + ':' + f['col']
                 if 'width' in f:
-                    ws.Range(f['range']).ColumnWidth = f['width']
+                    ws.Range(r).ColumnWidth = f['width']
                 if 'font' in f:
-                    ws.Range(f['range']).Font.Name = f['font']
+                    ws.Range(r).Font.Name = f['font']
 
     def _set_home_position(self):
         self.summary_ws.Activate()
