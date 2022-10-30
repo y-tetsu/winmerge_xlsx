@@ -31,6 +31,7 @@ SUMMARY_FOLDER_COL = 'B'  # 一覧シートの表のフォルダー列
 HOME_POSITION = 'A1' # ホームポジション
 
 DIFF_START_ROW = 2                                  # 差分シートの開始行
+DIFF_ZOOM_RATIO = 85                                # 差分シートのズームの倍率
 DIFF_FORMATS = {                                    # 差分シートの書式設定
     'no': [                                         # 行番号列
         {'range': 'A1', 'width': 3},                # 左側
@@ -153,8 +154,13 @@ class WinMergeXlsx:
     def _format_diff_sheets(self):
         for i in range(DIFF_START_ROW, self.wb.Worksheets.Count+1):
             ws = self.wb.Worksheets(i)
+            self._set_zoom(ws)
             self._format_no_cols(ws)
             self._format_code_cols(ws)
+
+    def _set_zoom(self, ws):
+        ws.Activate()
+        self.excel.ActiveWindow.Zoom = DIFF_ZOOM_RATIO
 
     def _format_no_cols(self, ws):
         for f in DIFF_FORMATS['no']:
