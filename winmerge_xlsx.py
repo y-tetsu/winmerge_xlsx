@@ -67,7 +67,7 @@ class WinMergeXlsx:
     def _setup_excel_application(self):
         try:
             if win32com.client.GetObject(Class='Excel.Application'):
-                self._message_and_exit('Excelを閉じてください。')
+                self.__message_and_exit('Excelを閉じてください。')
         except win32com.client.pywintypes.com_error:
             pass
 
@@ -76,19 +76,19 @@ class WinMergeXlsx:
             try:
                 os.remove(self.output_html)
             except PermissionError:
-                self._message_and_exit(str(self.output_html) + 'へのアクセス権がありません。')
+                self.__message_and_exit(str(self.output_html) + 'へのアクセス権がありません。')
         if (os.path.isdir(self.output_html_files)):
             try:
                 shutil.rmtree(self.output_html_files)
             except PermissionError:
-                self._message_and_exit(str(self.output_html_files) + 'へのアクセス権がありません。')
+                self.__message_and_exit(str(self.output_html_files) + 'へのアクセス権がありません。')
         if (os.path.exists(self.output)):
             try:
                 os.remove(self.output)
             except PermissionError:
-                self._message_and_exit(str(self.output) + 'へのアクセス権がありません。')
+                self.__message_and_exit(str(self.output) + 'へのアクセス権がありません。')
 
-    def _message_and_exit(self, message):
+    def __message_and_exit(self, message):
         print('\nError : ' + message)
         sys.exit(-1)
 
