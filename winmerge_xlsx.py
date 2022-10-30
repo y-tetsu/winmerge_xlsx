@@ -72,7 +72,7 @@ class WinMergeXlsx:
     def _setup_excel_application(self):
         try:
             if win32com.client.GetObject(Class='Excel.Application'):
-                self.__message_and_exit('Excelを閉じてください。')
+                self.__message_and_exit('Excelを閉じて下さい。')
         except win32com.client.pywintypes.com_error:
             pass
 
