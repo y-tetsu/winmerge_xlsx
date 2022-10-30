@@ -156,8 +156,7 @@ class WinMergeXlsx:
             ws = self.wb.Worksheets(i)
             self._set_zoom(ws)
             self._freeze_panes(ws)
-            self._format_no_cols(ws)
-            self._format_code_cols(ws)
+            self._set_format(ws)
 
     def _set_zoom(self, ws):
         ws.Activate()
@@ -168,14 +167,13 @@ class WinMergeXlsx:
         ws.Range("A2").Select()
         self.excel.ActiveWindow.FreezePanes = True
 
-    def _format_no_cols(self, ws):
-        for f in DIFF_FORMATS['no']:
-            ws.Range(f['range']).ColumnWidth = f['width']
-
-    def _format_code_cols(self, ws):
-        for f in DIFF_FORMATS['code']:
-            ws.Range(f['range']).ColumnWidth = f['width']
-            ws.Range(f['range']).Font.Name = f['font']
+    def _set_format(self, ws):
+        for key in DIFF_FORMATS.keys():
+            for f in DIFF_FORMATS[key]:
+                if 'width' in f:
+                    ws.Range(f['range']).ColumnWidth = f['width']
+                if 'font' in f:
+                    ws.Range(f['range']).Font.Name = f['font']
 
     def _set_home_position(self):
         self.summary_ws.Activate()
