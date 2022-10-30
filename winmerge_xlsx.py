@@ -6,6 +6,7 @@ import subprocess
 import win32com.client
 
 WINMERGE_EXE = "C:\Program Files\WinMerge\WinMergeU.exe"  # WinMergeへのパス
+CODE_FONT = 'ＭＳ ゴシック'  # ソースコードのフォント
 
 
 class WinMergeXlsx:
@@ -104,6 +105,12 @@ class WinMergeXlsx:
             file_ws = file_wb.Worksheets(1)
             file_ws.Copy(Before = None, After=output_wb.Worksheets(count))
             count += 1
+
+        # コード差分のフォントを変更
+        for i in range(2, output_wb.Worksheets.Count):
+            ws = output_wb.Worksheets(i)
+            ws.Range('B:B').Font.Name = CODE_FONT
+            ws.Range('D:D').Font.Name = CODE_FONT
 
         # 開始セルを移動
         output_ws.Activate()
