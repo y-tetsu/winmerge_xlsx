@@ -5,7 +5,7 @@ from pathlib import Path
 import subprocess
 import win32com.client
 
-WINMERGE_EXE = 'C:\Program Files\WinMerge\WinMergeU.exe'  # WinMergeへのパス
+WINMERGE_EXE = r'C:\Program Files\WinMerge\WinMergeU.exe'  # WinMergeへのパス
 WINMERGE_OPTIONS = [
     '/minimize',                           # ウィンドウ最小化で起動
     '/noninteractive',                     # レポート出力後に終了
@@ -23,14 +23,14 @@ WINMERGE_OPTIONS = [
 xlUp = -4162
 xlOpenXMLWorkbook = 51
 xlCenter = -4108
-xlContinuous =  1
+xlContinuous = 1
 
 SUMMARY_WS_NUM = 1        # 一覧シートのワークシート番号
 SUMMARY_START_ROW = 6     # 一覧シートの表の開始行
 SUMMARY_NAME_COL = 'A'    # 一覧シートの表の名前列
 SUMMARY_FOLDER_COL = 'B'  # 一覧シートの表のフォルダー列
 
-HOME_POSITION = 'A1' # ホームポジション
+HOME_POSITION = 'A1'  # ホームポジション
 
 DIFF_START_ROW = 2                                            # 差分シートの開始行
 DIFF_ZOOM_RATIO = 85                                          # 差分シートのズームの倍率
@@ -81,17 +81,20 @@ class WinMergeXlsx:
             try:
                 os.remove(self.output_html)
             except PermissionError:
-                self.__message_and_exit(str(self.output_html) + 'へのアクセス権がありません。')
+                message = str(self.output_html) + 'へのアクセス権がありません。'
+                self.__message_and_exit(message)
         if (os.path.isdir(self.output_html_files)):
             try:
                 shutil.rmtree(self.output_html_files)
             except PermissionError:
-                self.__message_and_exit(str(self.output_html_files) + 'へのアクセス権がありません。')
+                message = str(self.output_html_files) + 'へのアクセス権がありません。'
+                self.__message_and_exit(message)
         if (os.path.exists(self.output)):
             try:
                 os.remove(self.output)
             except PermissionError:
-                self.__message_and_exit(str(self.output) + 'へのアクセス権がありません。')
+                message = str(self.output) + 'へのアクセス権がありません。'
+                self.__message_and_exit(message)
 
     def __message_and_exit(self, message):
         print('\nError : ' + message)
@@ -136,14 +139,14 @@ class WinMergeXlsx:
                 self._change_hyperlink(name_cell)
                 folder_cell = ws.Range(SUMMARY_FOLDER_COL + str(row))
                 if folder_cell.Value:
-                    self._rename_html_files(name_cell, folder_cell)
+                    self._rename_html_files(name_cell.Value, folder_cell.Value)
 
-    def _rename_html_files(self, name_cell, folder_cell):
-        sheet_name = folder_cell.Value.replace('\\', '_') + '_' + name_cell.Value
+    def _rename_html_files(self, name, folder):
+        sheet_name = folder.replace('\\', '_') + '_' + name
         src = f'{self.output_html_files}/{sheet_name}.html'
-        dst = f'{self.output_html_files}/{name_cell.Value}.html'
+        dst = f'{self.output_html_files}/{name}.html'
         os.rename(src, dst)
-        print(sheet_name + ' ---> ' + name_cell.Value)
+        print(sheet_name + ' ---> ' + name)
 
     def _change_hyperlink(self, name_cell):
         for hl in name_cell.Hyperlinks:
@@ -151,7 +154,8 @@ class WinMergeXlsx:
             hl.SubAddress = name_cell.Value + '!' + HOME_POSITION
 
     def _copy_html_files(self):
-        for count, html in enumerate(self.output_html_files.glob('**/*.html'), 1):
+        g = self.output_html_files.glob('**/*.html')
+        for count, html in enumerate(g, 1):
             diff_wb = self.excel.Workbooks.Open(html)
             diff_ws = diff_wb.Worksheets(1)
             diff_ws.Copy(Before=None, After=self.wb.Worksheets(count))
@@ -176,8 +180,9 @@ class WinMergeXlsx:
 
     def _remove_hyperlink_from_no(self, ws):
         for f in DIFF_FORMATS['no']:
+            end_row = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
             r1 = f['col'] + ':' + f['col']
-            r2 = f['col'] + str(DIFF_START_ROW) + ':' + f['col'] + str(ws.Cells(ws.Rows.Count, 1).End(xlUp).Row)
+            r2 = f['col'] + str(DIFF_START_ROW) + ':' + f['col'] + str(end_row)
             ws.Range(r1).Hyperlinks.Delete()
             ws.Range(r2).Interior.Color = int('F0F0F0', 16)
             ws.Range(r2).Font.Size = 12
