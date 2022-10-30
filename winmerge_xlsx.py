@@ -141,17 +141,17 @@ class WinMergeXlsx:
                 if folder_cell.Value:
                     self._rename_html_files(name_cell.Value, folder_cell.Value)
 
+    def _change_hyperlink(self, name_cell):
+        for hl in name_cell.Hyperlinks:
+            hl.Address = ''
+            hl.SubAddress = name_cell.Value + '!' + HOME_POSITION
+
     def _rename_html_files(self, name, folder):
         sheet_name = folder.replace('\\', '_') + '_' + name
         src = f'{self.output_html_files}/{sheet_name}.html'
         dst = f'{self.output_html_files}/{name}.html'
         os.rename(src, dst)
         print(sheet_name + ' ---> ' + name)
-
-    def _change_hyperlink(self, name_cell):
-        for hl in name_cell.Hyperlinks:
-            hl.Address = ''
-            hl.SubAddress = name_cell.Value + '!' + HOME_POSITION
 
     def _copy_html_files(self):
         g = self.output_html_files.glob('**/*.html')
