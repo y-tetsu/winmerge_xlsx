@@ -9,7 +9,7 @@ WINMERGE_EXE = "C:\Program Files\WinMerge\WinMergeU.exe"  # WinMergeへのパス
 
 
 class WinMergeXlsx:
-    def __init__(self, folder1, folder2, output_xlsx):
+    def __init__(self, folder1, folder2, output_xlsx='./output.xlsx'):
         # 絶対パス取得
         self.folder1 = Path(folder1).absolute()
         self.folder2 = Path(folder2).absolute()
@@ -116,4 +116,8 @@ class WinMergeXlsx:
 
 
 if __name__ == '__main__':
-    WinMergeXlsx(sys.argv[1], sys.argv[2], sys.argv[3]).generate()
+    if len(sys.argv) < 3:
+        print(f'Usage : {sys.argv[0]} <folder1> <folder2>')
+        sys.exit(1)
+
+    WinMergeXlsx(sys.argv[1], sys.argv[2]).generate()
