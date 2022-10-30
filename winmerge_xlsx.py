@@ -155,12 +155,18 @@ class WinMergeXlsx:
         for i in range(DIFF_START_ROW, self.wb.Worksheets.Count+1):
             ws = self.wb.Worksheets(i)
             self._set_zoom(ws)
+            self._freeze_panes(ws)
             self._format_no_cols(ws)
             self._format_code_cols(ws)
 
     def _set_zoom(self, ws):
         ws.Activate()
         self.excel.ActiveWindow.Zoom = DIFF_ZOOM_RATIO
+
+    def _freeze_panes(self, ws):
+        ws.Activate()
+        ws.Range("A2").Select()
+        self.excel.ActiveWindow.FreezePanes = True
 
     def _format_no_cols(self, ws):
         for f in DIFF_FORMATS['no']:
