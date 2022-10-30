@@ -22,6 +22,8 @@ WINMERGE_OPTIONS = [
 
 xlUp = -4162
 xlOpenXMLWorkbook = 51
+xlCenter = -4108
+xlContinuous =  1
 
 SUMMARY_WS_NUM = 1        # 一覧シートのワークシート番号
 SUMMARY_START_ROW = 6     # 一覧シートの表の開始行
@@ -40,6 +42,9 @@ DIFF_FORMATS = {                                              # 差分シート�
     'code': [                                                 # ソースコード列
         {'col': 'B', 'width': 100, 'font': 'ＭＳ ゴシック'},  # 左側
         {'col': 'D', 'width': 100, 'font': 'ＭＳ ゴシック'},  # 右側
+    ],
+    'extra': [                                                # 追加列
+        {'col': 'E', 'width': 60, 'header': 'コメント'},
     ],
 }
 
@@ -185,6 +190,26 @@ class WinMergeXlsx:
                     ws.Range(r).ColumnWidth = f['width']
                 if 'font' in f:
                     ws.Range(r).Font.Name = f['font']
+                if 'header' in f:
+                    self._set_extra_table(ws, f)
+
+    def _set_extra_table(self, ws, f):
+        end_row = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
+        r1 = f['col'] + '1'
+        r2 = f['col'] + '1:' + f['col'] + str(end_row)
+        ws.Range(r1).Value = f['header']
+        ws.Range(r1).VerticalAlignment = xlCenter
+        ws.Range(r1).HorizontalAlignment = xlCenter
+        ws.Range(r1).Interior.Color = int('CCFFCC', 16)
+        ws.Range(r2).Borders.Color = int('000000', 16)
+        ws.Range(r2).Borders.LineStyle = xlContinuous
+        for i in range(DIFF_START_ROW, end_row+1):
+            code_col = DIFF_FORMATS['code'][0]['col']
+            code_color = ws.Range(code_col + str(i)).Interior.Color
+            if code_color == int('FFFFFF', 16):
+                r = f['col'] + str(i)
+                ws.Range(r).Value = '-'
+                ws.Range(r).Interior.Color = int('E0E0E0', 16)
 
     def _set_home_position(self, ws):
         ws.Activate()
