@@ -8,7 +8,7 @@ import win32com.client
 WINMERGE_EXE = "C:\Program Files\WinMerge\WinMergeU.exe"  # WinMergeへのパス
 
 
-class WinMergeXlsxReport:
+class WinMergeXlsx:
     def __init__(self, folder1, folder2, output_xlsx):
         # 絶対パス取得
         self.folder1 = Path(folder1).absolute()
@@ -23,6 +23,12 @@ class WinMergeXlsxReport:
 
     def generate(self):
         # 事前準備
+        try:
+            if win32com.client.GetObject(Class='Excel.Application'):
+                print("\nError : Excelを閉じてください。")
+                sys.exit(-1)
+        except win32com.client.pywintypes.com_error:
+            pass
         if (os.path.exists(self.output_html)):
             try:
                 os.remove(self.output_html)
@@ -110,4 +116,4 @@ class WinMergeXlsxReport:
 
 
 if __name__ == '__main__':
-    WinMergeXlsxReport(sys.argv[1], sys.argv[2], sys.argv[3]).generate()
+    WinMergeXlsx(sys.argv[1], sys.argv[2], sys.argv[3]).generate()
