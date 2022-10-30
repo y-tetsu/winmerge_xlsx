@@ -165,7 +165,7 @@ class WinMergeXlsx:
 
     def _freeze_panes(self, ws):
         ws.Activate()
-        ws.Range('A2').Select()
+        ws.Range('A' + str(DIFF_START_ROW)).Select()
         self.excel.ActiveWindow.FreezePanes = True
 
     def _remove_hyperlink_from_no(self, ws):
