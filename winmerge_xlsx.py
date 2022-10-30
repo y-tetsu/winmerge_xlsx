@@ -106,11 +106,15 @@ class WinMergeXlsx:
             file_ws.Copy(Before = None, After=output_wb.Worksheets(count))
             count += 1
 
-        # コード差分のフォントを変更
+        # コード差分シートの処理
         for i in range(2, output_wb.Worksheets.Count):
             ws = output_wb.Worksheets(i)
+            # フォントを変更
             ws.Range('B:B').Font.Name = CODE_FONT
             ws.Range('D:D').Font.Name = CODE_FONT
+            # 列の幅を変更
+            ws.Range("A1").ColumnWidth = 3
+            ws.Range("C1").ColumnWidth = 3
 
         # 開始セルを移動
         output_ws.Activate()
