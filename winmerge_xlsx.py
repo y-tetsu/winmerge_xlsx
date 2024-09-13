@@ -3,6 +3,7 @@ import os
 import shutil
 from pathlib import Path
 import subprocess
+import json
 import win32com.client
 
 WINMERGE_EXE = r'C:\Program Files\WinMerge\WinMergeU.exe'  # WinMergeへのパス
@@ -25,6 +26,7 @@ WINMERGE_OPTIONS = [
 ]
 
 xlUp = -4162
+xlToLeft = -4159
 xlOpenXMLWorkbook = 51
 xlCenter = -4108
 xlContinuous = 1
@@ -65,6 +67,20 @@ class WinMergeXlsx:
         stem = str(self.output.stem)
         self.output_html = Path(parent + '/' + stem + '.html')
         self.output_html_files = Path(parent + '/' + stem + '.files')
+
+        self.setting_json = './setting.json'
+        if os.path.exists(self.setting_json):
+            with open(self.setting_json, 'r') as f:
+                json_load = json.load(f)
+            if 'WINMERGE_EXE' in json_load:
+                global WINMERGE_EXE
+                WINMERGE_EXE = json_load['WINMERGE_EXE']
+            if 'WINMERGE_OPTIONS' in json_load:
+                global WINMERGE_OPTIONS
+                WINMERGE_OPTIONS = json_load['WINMERGE_OPTIONS']
+            if 'DIFF_FORMATS' in json_load:
+                global DIFF_FORMATS
+                DIFF_FORMATS = json_load['DIFF_FORMATS']
 
         self.sheet_memo = {}
         self.sheet_count = {}
@@ -125,6 +141,8 @@ class WinMergeXlsx:
     def _generate_html_by_winmerge(self):
         """WinMergeにてhtmlレポート生成
         """
+        print("\n[generate html by winmerge]")
+
         command = [
             WINMERGE_EXE,
             str(self.base),         # 比較元のフォルダ
@@ -159,20 +177,24 @@ class WinMergeXlsx:
     def _format_summary_sheet(self):
         """一覧シートの書式調整
         """
+        print("\n[format summary sheet]")
+
         ws = self.summary_ws
         end_row = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
 
         # 同名シート有無の確認
+        print('- check same filename ...', end='', flush=True)
         for row in range(SUMMARY_START_ROW, end_row+1):
             name_cell = ws.Range(SUMMARY_NAME_COL + str(row))
             if not name_cell.Value:
                 break
             if name_cell.Hyperlinks.Count > 0:
-                sheet_name = name_cell.Value
+                sheet_name = name_cell.Value.lower()
                 if sheet_name in self.sheet_memo:
                     self.sheet_memo[sheet_name] += 1
                 else:
                     self.sheet_memo[sheet_name] = 1
+        print(' done')
 
         # htmlファイルとハイパーリンクの設定
         for row in range(SUMMARY_START_ROW, end_row+1):
@@ -182,13 +204,14 @@ class WinMergeXlsx:
 
             if name_cell.Hyperlinks.Count > 0:
                 sname_src = sname_dst = name_cell.Value
-                if sname_src in self.sheet_count:
-                    self.sheet_count[sname_src] += 1
+                sname_src_lower = sname_src.lower()
+                if sname_src_lower in self.sheet_count:
+                    self.sheet_count[sname_src_lower] += 1
                 else:
-                    self.sheet_count[sname_src] = 1
+                    self.sheet_count[sname_src_lower] = 1
 
-                if self.sheet_memo[sname_src] >= 2:
-                    sname_dst += f'_{self.sheet_count[sname_src]}'
+                if self.sheet_memo[sname_src_lower] >= 2:
+                    sname_dst += f'_{self.sheet_count[sname_src_lower]}'
 
                 self._change_hyperlink(name_cell, sname_dst)
                 folder_cell = ws.Range(SUMMARY_FOLDER_COL + str(row)).Value
@@ -205,32 +228,47 @@ class WinMergeXlsx:
     def _rename_html_files(self, name_src, name_dst, folder):
         """htmlレポートのリネーム
         """
-        sheet_name = folder.replace('\\', '_') + '_' + name_src if folder else name_src
+        sheet_name = folder.replace('\\', '_') + '_' + name_src if folder else name_src  # noqa: E501
         src = f'{self.output_html_files}/{sheet_name}.html'
         dst = f'{self.output_html_files}/{name_dst}.html'
-        os.rename(src, dst)
         if sheet_name != name_dst:
-            print(sheet_name + ' ---> ' + name_dst)
+            os.rename(src, dst)
+            print('- ' + sheet_name + ' ---> ' + name_dst)
 
     def _copy_html_files(self):
         """htmlレポートをエクセルにコピー
         """
-        g = self.output_html_files.glob('**/*.html')
-        for count, html in enumerate(g, 1):
-            diff_wb = self.excel.Workbooks.Open(html)
-            diff_ws = diff_wb.Worksheets(1)
-            diff_ws.Copy(Before=None, After=self.wb.Worksheets(count))
+        print("\n[copy html files]")
+
+        count = 1
+        for html in self.output_html_files.glob('**/*.html'):
+            try:
+                print(f'- {html.name} ...', end='', flush=True)
+                diff_wb = self.excel.Workbooks.Open(html)
+                diff_ws = diff_wb.Worksheets(1)
+                diff_ws.Copy(Before=None, After=self.wb.Worksheets(count))
+                diff_wb.Close()
+                count += 1
+                print(' done')
+            except win32com.client.pywintypes.com_error as e:
+                print(' skipped *** unknown error ***')
+                print(f'\n{e}\n')
 
     def _format_diff_sheets(self):
         """差分シートの書式調整
         """
+        print("\n[format diff sheets]")
+
         for i in range(DIFF_START_ROW, self.wb.Worksheets.Count+1):
             ws = self.wb.Worksheets(i)
+            print(f'- {ws.Name} ...', end='', flush=True)
             self._set_zoom(ws)
             self._freeze_panes(ws)
             self._remove_hyperlink_from_no(ws)
             self._set_format(ws)
+            self._set_autofilter(ws)
             self._set_home_position(ws)
+            print(' done')
 
     def _set_zoom(self, ws):
         """拡大率を設定する
@@ -273,7 +311,7 @@ class WinMergeXlsx:
     def _set_extra_table(self, ws, f):
         """表を追加する
         """
-        end_row = max(ws.Cells(ws.Rows.Count, 1).End(xlUp).Row, ws.Cells(ws.Rows.Count, 3).End(xlUp).Row)
+        end_row = self._get_diff_end_row(ws)
 
         # 表の見出し
         ws_range = ws.Range(f['col'] + '1')
@@ -302,15 +340,24 @@ class WinMergeXlsx:
                 group += 1
             else:
                 if group:
-                    ws_range = ws.Range(f['col'] + str(row-group) + ':' + f['col'] + str(row-1))
+                    ws_range = ws.Range(f['col'] + str(row-group) + ':' + f['col'] + str(row-1))  # noqa: E501
                     ws_range.Value = ''
                     ws_range.Interior.Color = int('FFFFFF', 16)
                     group = 0
             row += 1
         if group:
-            ws_range = ws.Range(f['col'] + str(end_row-group+1) + ':' + f['col'] + str(end_row))
+            ws_range = ws.Range(f['col'] + str(end_row-group+1) + ':' + f['col'] + str(end_row))  # noqa: E501
             ws_range.Value = ''
             ws_range.Interior.Color = int('FFFFFF', 16)
+
+    def _set_autofilter(self, ws):
+        """オートフィルタを設定する
+        """
+        start = 'E1'
+        end = ws.Cells(1, ws.Columns.Count).End(xlToLeft).Address.split('$')[1] + '1'  # noqa: E501
+        if end == start:
+            end = 'F1'
+        ws.Range(start, end).AutoFilter()
 
     def _set_home_position(self, ws):
         """ホームポジションを設定する
@@ -322,7 +369,14 @@ class WinMergeXlsx:
         """ブックを保存する
         """
         self.wb.SaveAs(str(self.output), FileFormat=xlOpenXMLWorkbook)
-        print('xlsxへの変換が完了しました。')
+        print('\nxlsxへの変換が完了しました。')
+
+    def _get_diff_end_row(self, ws):
+        """差分シートの最終行の番号を取得する
+        """
+        left_row = ws.Cells(ws.Rows.Count, 2).End(xlUp).Row
+        right_row = ws.Cells(ws.Rows.Count, 4).End(xlUp).Row
+        return max(left_row, right_row) + 1
 
 
 if __name__ == '__main__':

@@ -1,0 +1,33 @@
+{
+    "WINMERGE_EXE":"C:\\Program Files\\WinMerge\\WinMergeU.exe",
+    "WINMERGE_OPTIONS":[
+        "/minimize",
+        "/noninteractive",
+        "/cfg",
+        "Settings/DirViewExpandSubdirs=1",
+        "/cfg",
+        "Settings/ViewLineNumbers=1",
+        "/cfg",
+        "Settings/WordDifferenceTextColor=255",
+        "/cfg",
+        "ReportFiles/ReportType=2",
+        "/cfg",
+        "ReportFiles/IncludeFileCmpReport=1",
+        "/r",
+        "/u",
+        "/or"
+    ],
+    "DIFF_FORMATS":{
+        "no":[
+            {"col": "A", "width": 5},
+            {"col": "C", "width": 5}
+        ],
+        "code":[
+            {"col": "B", "width": 100, "font": "ÇlÇr ÉSÉVÉbÉN"},
+            {"col": "D", "width": 100, "font": "ÇlÇr ÉSÉVÉbÉN"}
+        ],
+        "extra":[
+            {"col": "E", "width": 60, "header": "ÉRÉÅÉìÉg"}
+        ]
+    }
+}
