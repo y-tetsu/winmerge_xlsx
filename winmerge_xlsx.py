@@ -6,6 +6,8 @@ import subprocess
 import json
 import win32com.client
 
+VERSION = 'v1.0.0'
+
 WINMERGE_EXE = r'C:\Program Files\WinMerge\WinMergeU.exe'  # WinMergeへのパス
 WINMERGE_OPTIONS = [
     '/minimize',                             # ウィンドウ最小化で起動
@@ -385,6 +387,8 @@ if __name__ == '__main__':
         sys.exit(1)
 
     import time
+
+    print(f'{sys.argv[0]} {VERSION}')
 
     start = time.perf_counter()
     WinMergeXlsx(*sys.argv[1:4]).generate()
